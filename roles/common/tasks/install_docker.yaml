@@ -1,0 +1,72 @@
+---
+
+- name: install pip
+  package:
+    name: python-pip
+    state: present
+
+
+- name: update pip
+  ignore_errors: yes
+  shell: python -m pip install --upgrade pip
+
+
+- name: uninstall the docker-py
+  pip:
+    name: docker
+    state: absent
+
+- name: uninstall the docker-py
+  pip:
+    name: docker-py
+    state: absent
+
+- name: install the docker python module
+  pip:
+    name: docker
+    state: present
+
+- name: install the docker-compose with pip
+  pip:
+    name: docker-compose
+    state: present
+
+- name: ensure docker directory exists
+  file:
+    path: /etc/systemd/system/docker.service.d/
+    state: directory
+
+- name: set docker proxy.
+  template:
+    src: docker-proxy.conf.j2
+    dest:  /etc/systemd/system/docker.service.d/override.conf
+  register: override_template
+
+- name: Reload systemd daemon if template is changed.
+  systemd:
+    daemon_reload: true
+  when: override_template is changed
+
+- name: restart docker service
+  systemd:
+    name: docker
+    state: restarted
+  when: override_template is changed
+
+- name: test docker by pulling hello-world
+  docker_image:
+    name: hello-world
+  when: override_template is changed
+
+- name: clean hello-world image
+  docker_image:
+    state: absent
+    name: hello-world
+  when: override_template is changed
+
+- name: set permissions to file
+  file:
+    path: "/opt/"
+    group: "admin"
+    # when specifying mode using octal numbers, add a leading 0
+    mode: 0775

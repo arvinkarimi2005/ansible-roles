@@ -1,0 +1,23 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+  - name: clear docker containers
+    ignore_errors: yes
+    shell: docker ps -a | awk '{ if(NR > 1) print $1}' | xargs docker rm -f
+
+  - name: clear docker images
+    ignore_errors: yes
+    shell: docker images -a | awk '{if (NR > 1) print $3}' | xargs docker rmi -f
+
+  - name:
+    shell: docker volume prune -f
+
+  - name:
+    shell: docker network prune -f
+
+  - name: restart docker service
+    systemd:
+      name: docker
+      state: restarted

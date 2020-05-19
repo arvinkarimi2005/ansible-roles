@@ -1,0 +1,42 @@
+---
+
+- hosts: postgres
+  become: true
+  tasks:
+    - name: install postgresql
+      register: result
+      import_role:
+        name: geerlingguy.postgresql
+      vars:
+        postgresql_hba_entries:
+          - { type: local, database: all, user: postgres, auth_method: peer }
+          - { type: local, database: all, user: all, auth_method: peer }
+          - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: md5 }
+
+          ## this is my private ip
+          - { type: host, database: all, user: all, address: '172.20.1.0/24', auth_method: md5 }
+          # - { type: host, database: all, user: all, address: '192.168.0.0/16', auth_method: md5 }
+          - { type: host, database: all, user: all, address: '::1/128', auth_method: md5 }
+
+        postgresql_locales:
+          - 'en_US.UTF-8'
+
+        postgresql_users:
+          - name: admin
+            password: admin
+            role_attr_flags: LOGIN,CREATEDB,CREATEROLE,INHERIT,NOSUPERUSER,NOREPLICATION,NOBYPASSRLS
+          - name: example_user_1
+            password: passwird_for_user1
+            role_attr_flags: LOGIN,INHERIT
+
+        postgresql_databases:
+          - name: exmaple_db_1
+            encoding: UTF-8
+            lc_collate: en_US.UTF-8
+            lc_ctype: en_US.UTF-8
+            owner: admin
+          - name: exmaple_db_2
+            encoding: UTF-8
+            lc_collate: en_US.UTF-8
+            lc_ctype: en_US.UTF-8
+            owner: exmaple_user_1

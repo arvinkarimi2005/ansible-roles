@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  {{ service_name }}:
+    image: "rabbitmq:3-management"
+    container_name: {{ service_name }}
+    ports:
+      - "{{ rabbitmq_http_port }}:15672"
+      - "{{ rabbitmq_tcp_port }}:5672"
+    labels:
+      NAME: "rabbitmq"
+    volumes:
+     - 'rmq_data:/etc/rabbitmq'
+    #- "./autocluster-0.4.1.ez:/usr/lib/rabbitmq/lib/rabbitmq_server-3.5.5/plugins/autocluster-0.4.1.ez"
+
+
+volumes:
+  rmq_data:
+    driver: local

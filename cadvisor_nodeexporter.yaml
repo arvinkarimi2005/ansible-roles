@@ -1,0 +1,13 @@
+---
+
+- hosts: dockers
+  become: true
+  remote_user: rhnadmin
+  tasks:
+    - name: cadvisor
+      import_role:
+        name: infra
+      vars:
+        service_name: cadvisor
+        service_type: cadvisor
+        install_service: true

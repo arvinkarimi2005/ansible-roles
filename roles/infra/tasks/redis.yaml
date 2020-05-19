@@ -1,0 +1,30 @@
+---
+
+- name: create directory for docker-compose 
+  file:
+    path: /opt/{{ redis_service_name }}/
+    state: directory
+
+- name: copy docker-compose 
+  template:
+    src: redis-docker-compose.yaml.j2
+    dest:  /opt/{{ redis_service_name }}/docker-compose.yml
+  register: override_template
+  
+
+- name: copy redis config file 
+  template:
+    src: redis.conf.j2
+    dest:  /opt/{{ redis_service_name }}/redis.conf
+  register: override_template
+
+- name: ensure docker container is not running
+  docker_service:
+    project_src: "/opt/{{ redis_service_name }}/"
+    state: absent
+ 
+- name: ensure docker container is running
+  docker_service:
+    project_src: "/opt/{{ redis_service_name }}/"
+    state: present
+ 

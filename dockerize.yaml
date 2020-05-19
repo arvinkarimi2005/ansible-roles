@@ -1,0 +1,36 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+    - name: redis
+      import_role:
+        name: infra
+      vars:
+        service_name: redis-not-clustered
+        service_type: redis
+        redis_port: 6371
+        install_service: true
+        rdb_active: false
+
+- hosts: all
+  become: true
+  tasks:
+    - name: mongo
+      import_role:
+        name: infra
+      vars:
+        service_name: mongo-not-clustered
+        service_type: mongo
+        install_service: true
+
+- hosts: all
+  become: true
+  tasks:
+    - name: rabbitmq
+      import_role:
+        name: infra
+      vars:
+        service_name: rabbitmq-not-clustered
+        service_type: rabbitmq
+        install_service: true

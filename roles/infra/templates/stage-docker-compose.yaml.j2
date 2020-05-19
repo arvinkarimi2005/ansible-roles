@@ -1,0 +1,105 @@
+version: '3'
+
+services:
+### External Services
+
+  mongo:
+    image: percona/percona-server-mongodb:3.6
+    ports:
+      - "{{ mongo_port }}:27017"
+    networks:
+      - private
+    volumes:
+      - mongo-volume:/data/db
+      - mongo-configdb-volume:/data/configdb
+    dns_search: .
+
+  rabbitmq:
+    image: rabbitmq:3.6-management
+    ports:
+      - "{{ rabbitmq_http_port }}:15672"
+      - "{{ rabbitmq_tcp_port }}:5672"
+    networks:
+      - private
+    volumes:
+      - rabbitmq-volume:/var/lib/rabbitmq
+    dns_search: .
+
+  backend-cache:
+    image: redis:alpine
+    ports:
+      - 6377:6379
+    networks:
+      - private
+    volumes:
+      - redis-cache:/data
+      - {{ redis_conf_dir }}:/usr/local/etc/redis/redis.conf
+    dns_search: .
+
+  redis-storage:
+    image: redis:alpine
+    ports:
+      - 6378:6379
+    networks:
+      - private
+    volumes:
+      - redis-storage:/data
+      - {{ redis_conf_dir }}:/usr/local/etc/redis/redis.conf
+    dns_search: .
+
+  redis-session:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    networks:
+      - private
+    volumes:
+      - redis-session:/data
+      - {{ redis_conf_dir }}:/usr/local/etc/redis/redis.conf
+    dns_search: .
+
+  mysql:
+    image: percona/percona-server:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: qazzaq
+      MYSQL_USER: rhnadmin
+      MYSQL_PASSWORD: qazzaq
+    ports:
+      - 3306:3306
+    volumes:
+      # create volumes for use
+      - mysql-storage:/var/lib/mysql
+      # bind mount my local my.cnf
+      #- ./my.cnf:/etc/my.cnf
+    command:
+      # Workaround for no my.cnf in image
+      - '--user=mysql'
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+  beanstalkd:
+    image: schickling/beanstalkd:latest
+    restart: always
+    ports:
+      - "11300:11300"
+
+
+volumes:
+  mongo-volume:
+  mongo-configdb-volume:
+  rabbitmq-volume:
+  redis-cache:
+  redis-session:
+  redis-storage:
+  mysql-storage:
+
+networks:
+  public:
+    driver: bridge
+  private:
+    driver: bridge

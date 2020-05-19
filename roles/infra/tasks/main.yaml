@@ -1,0 +1,17 @@
+---
+
+- name: "{{service}} docker compose directory exists"
+  stat:
+    path: "{{docker_compose_dir}}"
+  register: s
+  when: is_dockerized_service == true
+
+- name: "{{ service }} ensure docker container is not running if it's not suppose to install service"
+  docker_service:
+    project_src: "{{ docker_compose_dir }}"
+    state: absent
+  when:  install_service  == false and s.stat.isdir is defined and s.stat.isdir and is_dockerized_service == true
+
+
+- include_tasks: dockerize.yaml
+  when: install_service == true and is_dockerized_service == true

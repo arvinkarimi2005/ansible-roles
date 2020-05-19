@@ -1,0 +1,47 @@
+---
+#
+- hosts: all
+  become: yes
+  environment:
+    # http_proxy: http://fodev.org:8118
+    # http_proxy: http://172.104.141.111:3128
+    # all_proxy: socks5://172.104.141.111:1082
+  roles:
+    - geerlingguy.ntp
+#
+- hosts: all
+  become: true
+  gather_facts: yes
+  roles:
+    - geerlingguy.docker
+  environment:
+    # http_proxy: http://fodev.org:8118
+    # https_proxy: http://fodev.org:8118
+    # http_proxy: "http://username:reyH007HTTPProxy@172.104.141.111:8118/"
+    # https_proxy: "http://username:reyH007HTTPProxy@172.104.141.111:8118/"
+    # all_proxy: socks5://172.104.141.111:1082
+#
+#
+- hosts: all
+  become: true
+  tasks:
+    - name: install htop
+      apt:
+        name: htop
+        state: present
+
+
+- hosts: all
+  become: yes
+  tasks:
+    - name: set proxy for dockers
+      import_role:
+        name: common
+      vars:
+        add_registry: false
+  environment:
+    # http_proxy: http://fodev.org:8118
+      # https_proxy: http://fodev.org:8118
+    http_proxy: "http://username:passeord@ip:pprt/"
+    https_proxy: "http://username:passeord@ip:pprt/"
+    all_proxy: socks5://ip:port

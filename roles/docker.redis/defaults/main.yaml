@@ -1,0 +1,8 @@
+---
+
+redis_port: 6379
+redis_conf_dir: ./redis.conf
+rdb_dir: ./redis-rdb
+rdb_active: true
+redis_service_name: redis
+install_redis: true

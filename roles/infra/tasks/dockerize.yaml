@@ -1,0 +1,37 @@
+---
+
+- name: "{{ service }} create directory for docker-compose "
+  file:
+    path: "{{ docker_compose_dir }} "
+    state: directory
+
+- name: "{{ service }}  copy docker-compose"
+  template:
+    src: "{{ service_type }}-docker-compose.yaml.j2"
+    dest:  "{{ docker_compose_dir }}/docker-compose.yml"
+  register: override_template
+
+- name: copy redis config file
+  template:
+    src: redis.conf.j2
+    dest: "{{ docker_compose_dir }}/redis.conf"
+  register: override_template
+  when: service_type == "redis"
+
+- name: "{{ service }} ensure docker container is not running"
+  docker_service:
+    project_src: "{{ docker_compose_dir }}"
+    state: absent
+
+- name: pull docker images
+  command: docker-compose pull
+  args:
+    chdir: "{{ docker_compose_dir }}"
+
+- name: run the service
+  docker_service:
+    project_src: "{{ docker_compose_dir }}"
+    recreate: always
+    pull: yes
+    state: present
+ 

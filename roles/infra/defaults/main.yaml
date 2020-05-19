@@ -1,0 +1,21 @@
+---
+
+service_type: mongo
+service_name: mongo
+install_service: false
+is_dockerized_service: true
+service: "{{service_type}}/{{service_name}}"
+docker_compose_dir: "/opt/{{service_type}}_{{service_name}}/"
+
+redis_port: 6379
+redis_conf_dir: ./redis.conf
+rdb_dir: ./redis-rdb
+rdb_active: true
+
+mongo_port: 27017
+
+rabbitmq_tcp_port: 5672
+rabbitmq_http_port: 15672
+
+
+is_stage: false

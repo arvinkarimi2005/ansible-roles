@@ -1,0 +1,13 @@
+
+- hosts: qa-services
+  become: true
+  tasks:
+  - name: stage
+    import_role:
+      name: infra
+    vars:
+      service_name: stage
+      service_type: stage
+      is_stage: true
+      install_service: true
+      rdb_active: false

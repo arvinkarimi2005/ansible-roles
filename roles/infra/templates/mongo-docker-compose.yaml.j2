@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  {{ service_name }}:
+    image: 'percona/percona-server-mongodb:3.6'
+    container_name: {{ service_name }}
+    ports:
+      - "{{ mongo_port }}:27017"
+    volumes:
+      - 'mongo_data:/data/db'
+
+volumes:
+  mongo_data:
+    driver: local

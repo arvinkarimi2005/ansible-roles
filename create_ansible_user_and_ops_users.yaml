@@ -1,0 +1,102 @@
+---
+# run with --ask-become-pass option
+# e.g.: ansible-playbook assert-users.yml --ask-become-pass -i hosts
+- hosts: ssh-vpn
+  become: yes
+  become_method: sudo
+  vars:
+    current_users:
+      - name: test_user
+        groups: 'admin,sudo'
+        password: 'sample_password'
+        shell: '/bin/bash'
+
+
+    deleted_users:
+      - deleted_user_name
+    ssh_configs:
+      - name: PermitRootLogin
+        val: 'no'
+      - name: PasswordAuthentication
+        val: 'no'
+      - name: UsePAM
+        val: 'no'
+      - name: ChallengeResponseAuthentication
+        val: 'no'
+
+  handlers:
+    - name: "Restart SSHD"
+      service:
+        name: "sshd"
+        state: "restarted"
+
+    - name: "Restart SSHD"
+      service:
+        name: "ssh"
+        state: "restarted"
+
+
+  tasks:
+    - name: Ensure off-boarded developers are removed
+      become: yes
+      become_method: sudo
+      user:
+        name: "{{ item }}"
+        state: absent
+        remove: yes
+      with_items: "{{ deleted_users }}"
+
+    - name: Ensure group "admin" exists
+      become: yes
+      become_method: sudo
+      group:
+        name: admin
+        state: present
+
+    - name: Ensure user account for current developers exist
+      become: yes
+      become_method: sudo
+      user:
+        name: "{{ item.name }}"
+        groups: "{{ item.groups }}"
+        password: "{{ item.password }}"
+        shell: "{{ item.shell }}"
+      with_items: "{{ current_users }}"
+
+
+    - name: "Add authorized keys for each user"
+      become: yes
+      become_method: sudo
+      authorized_key:
+        user: "{{ item.name }}"
+        key: "{{ lookup('file', 'public_keys/'+ item.name + '.key.pub') }}"
+        exclusive: yes
+      with_items: "{{ current_users }}"
+
+    - name: "Allow admin users to sudo without a password"
+      become: yes
+      become_method: sudo
+      lineinfile:
+        dest: "/etc/sudoers.d/90-cloud-init-users" # path: in version 2.3
+        state: "present"
+        regexp: "^%admin"
+        line: "%admin ALL=(ALL) NOPASSWD:ALL"
+
+    - name: set permissions to opt dir
+      become: yes
+      become_method: sudo
+      file:
+        path: "/opt/"
+        group: "admin"
+        # when specifying mode using octal numbers, add a leading 0
+        mode: 0775
+
+    - name: "Update SSH configs"
+      become: yes
+      become_method: sudo
+      lineinfile:
+        dest: "/etc/ssh/sshd_config"
+        regexp: "^{{ item.name }}"
+        line: "{{ item.name }} {{ item.val }}"
+      with_items: "{{ ssh_configs }}"
+      notify: "Restart SSHD"

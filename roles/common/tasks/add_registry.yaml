@@ -1,0 +1,49 @@
+---
+
+- name: Ansible check directory exists example.
+  stat:
+    path: "/home/{{ user }}/"
+  register: p
+
+- name: add untrusted registry.
+  template:
+    src: daemon.json.j2
+    dest:  /etc/docker/daemon.json
+  register: daemon_config
+
+- name: Ensures ~/.docker dir exists
+  file:
+    path: "/home/{{user}}/.docker/"
+    state: directory
+  when: p.stat.exists == true
+
+
+- name: add credentials.
+  template:
+    src: config.json.j2
+    dest:  "/home/{{user}}/.docker/config.json"
+  register: daemon_config
+  when: p.stat.exists == true
+
+- name: set permissions to file
+  file:
+    path: "/home/{{user}}/.docker/config.json"
+    owner: "{{user}}"
+    group: "{{user}}"
+    # when specifying mode using octal numbers, add a leading 0
+    mode: 0755
+  when: p.stat.exists == true
+
+
+
+- name: Reload systemd daemon if template is changed.
+  systemd:
+    daemon_reload: true
+  when: daemon_config is changed
+
+
+- name: restart docker service
+  systemd:
+    name: docker
+    state: restarted
+  when: daemon_config is changed

@@ -1,0 +1,9 @@
+version: '3'
+services:
+  {{ redis_service_name }}:
+    image: "redis:alpine"
+    ports:
+      - {{ redis_port }}:6379
+    volumes:
+      - {{ redis_conf_dir }}:/usr/local/etc/redis/redis.conf
+      - {{ rdb_dir }}:/opt/rdb
